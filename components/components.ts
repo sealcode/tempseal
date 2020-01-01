@@ -1,5 +1,6 @@
 import { ComponentConstructor } from "../component";
 import { Button } from "./button";
+import { ThumbnailParagraph } from "./thumbnail-paragraph/thumbnail-paragraph";
 
 export class ComponentMap {
 	map: Map<String, ComponentConstructor>;
@@ -23,6 +24,6 @@ export class ComponentMap {
 }
 
 export function getComponents(): ComponentMap {
-	const ret = new ComponentMap([Button]);
+	const ret = new ComponentMap([Button, ThumbnailParagraph]);
 	return ret;
 }

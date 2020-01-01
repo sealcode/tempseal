@@ -1,8 +1,12 @@
-export class ThumbnailParagraph {
+import { Component } from "../../component";
+import { FileSideEffect } from "../../side-effect/file";
+import { Props } from "./thumbnail-paragraph.props";
+
+export class ThumbnailParagraph extends Component {
 	static identifier = "thumbnail-paragraph";
-	static props = {};
+	props = Props;
 	async _render({
-		url,
+		image_path,
 		img_side,
 		headline,
 		title,
@@ -10,13 +14,18 @@ export class ThumbnailParagraph {
 		alt_text,
 		sticky = false
 	}) {
+		// need to add styles
+		const image = await FileSideEffect.fromPath(image_path);
 		const result = /* HTML */ `
 			<div
 				class="thumbnail-paragraph thumbnail-paragraph--${img_side ||
 					"right"}"
 			>
 				<div class="thumbnail ${sticky ? "thumbnail--sticky" : ""}">
-					<img alt="${alt_text || ""}" src="${"adsfad"}" />
+					<img
+						alt="${alt_text || ""}"
+						src="${image.url_placeholder}"
+					/>
 				</div>
 				<div class="header">
 					<div class="headline">${headline || ""}</div>
@@ -29,7 +38,7 @@ export class ThumbnailParagraph {
 		`;
 		return {
 			result,
-			side_effects: []
+			side_effects: [image]
 		};
 	}
 }

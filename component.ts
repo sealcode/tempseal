@@ -13,15 +13,18 @@ export interface ComponentConstructor {
 
 type Constructor<PropControl> = new (...args: any[]) => PropControl;
 
+export interface PropsDescription {
+	[propname: string]: {
+		control: string | Constructor<PropControl>;
+		label: string;
+		default_value?: any;
+		control_options?: any;
+	};
+}
+
 export abstract class Component {
 	abstract _render(props: Object): Promise<RenderResult>;
-	abstract props: {
-		[propname: string]: {
-			control: Constructor<PropControl>;
-			label: string;
-			default_value?: any;
-		};
-	};
+	abstract props: PropsDescription;
 	constructor() {}
 	public async render(props: Object): Promise<RenderResult> {
 		const prepared_props = {};
