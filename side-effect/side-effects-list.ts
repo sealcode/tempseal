@@ -3,16 +3,17 @@ import { SideEffect } from "./side-effect";
 export class SideEffectsList {
 	hash_to_effect: Map<string, SideEffect>;
 	constructor() {
-		this.hash_to_effect = new Map();
+		this.hash_to_effect = new Map() as Map<string, SideEffect>;
 	}
-	async add(effect: SideEffect): Promise<SideEffectsList> {
+	async add(effect: SideEffect): Promise<boolean> {
 		const hash = await effect.getHash();
 		if (this.hash_to_effect.has(hash)) {
 			this.hash_to_effect.get(hash).mergePlaceholdersWith(effect);
+			return false;
 		} else {
 			this.hash_to_effect.set(hash, effect);
+			return true;
 		}
-		return this;
 	}
 	async addMultiple(effects: Array<SideEffect>): Promise<SideEffectsList> {
 		for (let effect of effects) {
@@ -25,7 +26,8 @@ export class SideEffectsList {
 		await ret.addMultiple(effects);
 		return ret;
 	}
-	toArray() {
+
+	toArray(): Array<SideEffect> {
 		return Array.from(this.hash_to_effect.values());
 	}
 }

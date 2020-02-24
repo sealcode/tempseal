@@ -1,12 +1,12 @@
 {
-	"name": "tempseal",
+	"name": "@sealcode/tempseal",
 	"version": "0.1.0",
 	"description": "Template engine",
 	"main": "index",
 	"types": "index",
 	"scripts": {
-		"watch": "cpx 'components/**/*.{png,jpg}' dist/components -w -v & tsc --watch",
-		"build": "cpx 'components/**/*.{png,jpg}' dist/components       && tsc",
+		"watch": "tsc --watch",
+		"build": "tsc",
 		"prepublish": "npm run build"
 	},
 	"author": "Sealcode",
@@ -17,13 +17,15 @@
 		"node-sass": "^4.13.0",
 		"object-hash": "^2.0.1",
 		"react": "^16.12.0",
+		"rxjs": "^6.5.4",
 		"uuid": "^3.3.3"
 	},
 	"devDependencies": {
 		"@types/bluebird": "^3.5.29",
+		"@types/node-sass": "^4.11.0",
 		"@types/object-hash": "^1.3.0",
 		"@types/react": "^16.9.13",
 		"@types/uuid": "^3.4.6",
-		"cpx": "^1.5.0"
+		"typescript": "^3.8.2"
 	}
 }

@@ -1,4 +1,5 @@
-import * as Bluebird from "bluebird";
+import Bluebird from "bluebird";
+import { Observable } from "rxjs";
 
 export * from "./component";
 export * from "./prop-control";
@@ -6,17 +7,19 @@ export * from "./components/button";
 export * from "./tempseal-document";
 export * from "./components/components";
 
+// export * as SideEffects from "./side-effect/side-effects";
+// import * as SideEffects from "./side-effect/side-effects";
+
+import { SideEffect, MetaSideEffect } from "./side-effect/side-effect";
+
 import { TempsealDocument } from "./tempseal-document";
 import { SideEffectsList } from "./side-effect/side-effects-list";
-import { FileSideEffect } from "./side-effect/file";
-import { CssSideEffect } from "./side-effect/css";
-import { TitleSideEffect } from "./side-effect/title";
 import { ComponentMap } from "./components/components";
-import { Component } from "./component";
+import { IComponent } from "./component";
 
 interface CompileResult {
 	result: string;
-	side_effects: SideEffectsList;
+	side_effects: Observable<SideEffect>;
 }
 
 export async function compile(
@@ -26,18 +29,38 @@ export async function compile(
 	const side_effects_list = new SideEffectsList();
 	let result = "";
 	await Bluebird.Promise.map(document, ({ component_name, props }) => {
-		let component: Component;
+		let component: IComponent;
 		try {
-			component = new (components.get(component_name))();
+			component = components.get(component_name);
 		} catch (e) {
 			throw new Error(`Unknown component: '${component_name}'`);
 		}
-		return component.render(props);
+		return component(props);
 	}).each(async renderResult => {
 		result += renderResult.result;
 		await side_effects_list.addMultiple(renderResult.side_effects);
 	});
-	return { result, side_effects: side_effects_list };
+	return {
+		result,
+		side_effects: new Observable(async subscriber => {
+			const iterator = side_effects_list.hash_to_effect.values();
+			while (true) {
+				let { value: effect, done } = iterator.next();
+				if (done) {
+					// tutaj pewnie trzeba będzie emitnąć END
+					break;
+				}
+				if (effect instanceof MetaSideEffect) {
+					for (const child_effect of await effect.perform()) {
+						await side_effects_list.add(child_effect);
+					}
+				} else {
+					subscriber.next(effect);
+				}
+			}
+			return function unsubscribe() {};
+		})
+	};
 }
 
 export async function write(
@@ -50,7 +73,7 @@ export async function write(
 	let title = "";
 	const tasks = [];
 	for (const effect of compile_result.side_effects.toArray()) {
-		if (effect instanceof FileSideEffect) {
+		if (effect instanceof SideEffects.File) {
 			for (const placeholder of effect.equivalent_url_placeholders.concat(
 				[effect.url_placeholder]
 			)) {
@@ -58,15 +81,16 @@ export async function write(
 					placeholder,
 					await effect.getURL("/assets")
 				);
-				tasks.push(effect.write("/tmp/assets"));
+				tasks.push(effect.write(assets_dir));
 			}
-		}
-		if (effect instanceof CssSideEffect) {
+		} else if (effect instanceof SideEffects.Css) {
 			css += effect.stylesheet;
-		}
-		if (effect instanceof TitleSideEffect) {
+		} else if (effect instanceof SideEffects.Title) {
 			title = effect.title;
+		} else {
+			await effect.perform();
 		}
+		effect.markAsDone();
 	}
 	console.log(/* HTML */ `
 		<html>
