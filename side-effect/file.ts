@@ -82,7 +82,7 @@ export class FileSideEffect extends SideEffect {
 		}
 	}
 
-	async getURL(url_prefix): Promise<string> {
+	async getURL(url_prefix: string): Promise<string> {
 		return `${url_prefix}/${await this.getOutputFilename()}`;
 	}
 

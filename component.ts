@@ -1,6 +1,5 @@
-import { PropControl } from "./prop-control";
 import { SideEffect } from "./side-effect/side-effect";
-import { Context } from "./context";
+import { Subject } from "rxjs";
 
 export interface RenderResult {
 	result: string;
@@ -9,6 +8,6 @@ export interface RenderResult {
 
 export interface IComponent {
 	// (context: Context, props: Object): RenderResult;
-	(props: any): RenderResult | Promise<RenderResult>;
+	(add_effect: (effect: SideEffect) => void, props: any): Promise<void>;
 	identifier?: string;
 }

@@ -15,26 +15,23 @@ export class ScssSideEffect extends MetaSideEffect {
 		super();
 		this.stylesheet_getter = stylesheet_getter;
 	}
-	async perform(): Promise<Array<SideEffect>> {
-		const result = await promisify(scss.render)({
-			data: await this.stylesheet_getter()
-		});
-
-		return [new CssSideEffect(result.css.toString())];
-	}
-	static async fromPath(path: string): Promise<ScssSideEffect> {
+	static async addFromPath(
+		add_effect: (SideEffect) => void,
+		path: string
+	): Promise<void> {
 		assert.ok(isAbsolute(path), `Path '${path}' is not an absolute path`);
-		return new ScssSideEffect(function() {
-			return new Promise(function(resolve, reject) {
-				readFile(path, { encoding: "utf-8" }, (err, result) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(result);
-					}
+		add_effect(
+			new CssSideEffect(async () => {
+				const data = await promisify(readFile)(path, {
+					encoding: "utf-8"
 				});
-			});
-		});
+				return (
+					await promisify(scss.render)({
+						data
+					})
+				).css.toString();
+			})
+		);
 	}
 	async hash() {
 		return MD5(await this.stylesheet_getter());

@@ -2,3 +2,5 @@ dist
 *.js
 *.d.ts
 node_modules
+public
+
