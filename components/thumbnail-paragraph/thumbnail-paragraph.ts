@@ -18,6 +18,7 @@ ThumbnailParagraph = async function(
 	const image = await SideEffects.File.fromPath(image_path);
 	await SideEffects.Scss.addFromPath(
 		add_effect,
+
 		resolve(__dirname, "thumbnail-paragraph.scss")
 	);
 	add_effect(image);

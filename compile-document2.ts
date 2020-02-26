@@ -9,7 +9,6 @@ import {
 	IComponent,
 	SideEffect,
 	SideEffects,
-	MetaSideEffect,
 	getComponents
 } from "./";
 
@@ -39,17 +38,21 @@ function emitEffects(
 function deduplicate(effects: Observable<SideEffect>) {
 	return new Observable(subscriber => {
 		const hashes = new Set();
+		const promises = [];
 		effects.subscribe(
-			async (effect: SideEffect) => {
-				const hash = await effect.getHash();
-				if (!hashes.has(hash)) {
-					hashes.add(hash);
-					subscriber.next(effect);
-				}
+			(effect: SideEffect) => {
+				promises.push(
+					effect.getHash().then(hash => {
+						if (!hashes.has(hash)) {
+							hashes.add(hash);
+							subscriber.next(effect);
+						}
+					})
+				);
 			},
 			null,
 			() => {
-				subscriber.complete();
+				Promise.all(promises).then(() => subscriber.complete());
 			}
 		);
 	});
@@ -226,6 +229,7 @@ async function test() {
 	]);
 	effects
 		.pipe(
+			deduplicate,
 			replaceUrlPlaceholders,
 			combineHtmlFile,
 			write(path.resolve(__dirname, "public"))
