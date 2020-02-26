@@ -10,6 +10,11 @@ export class HtmlChunkSideEffect extends SideEffect {
 		super();
 		this.chunk = chunk;
 	}
+	getReferencedHashes(): Array<string> {
+		return (this.chunk.match(/\#\{[-a-zA-Z0-9]+\}/g) || []).map(s =>
+			s.replace(/[\{\}\#]/g, "")
+		);
+	}
 	async hash() {
 		return `html-chunk-${count++}`;
 	}

@@ -32,8 +32,8 @@ export class FileSideEffect extends SideEffect {
 		return MD5(this.deps);
 	}
 
-	async getOutputFilename(): Promise<string> {
-		return `${this.basename}-${await this.getHash()}${this.extension}`;
+	getOutputFilename(): string {
+		return `${this.basename}-${this._hash}${this.extension}`;
 	}
 
 	async _write(output_dir: string): Promise<string> {
@@ -59,31 +59,34 @@ export class FileSideEffect extends SideEffect {
 		}
 	}
 
-	async write(output_dir: string) {
+	async write(
+		output_dir: string
+	): Promise<{ path: string; write_was_needed: boolean }> {
 		if (await this._isWriteNecessary(output_dir)) {
 			try {
 				await this._write(output_dir);
 			} catch (e) {
 				if (e.code === "ENOENT" && e.syscall === "open") {
-					console.log(
-						`Directory ${output_dir} not found, attempting to create it...`
-					);
 					await makeDir(output_dir);
 					await this._write(output_dir);
 				} else {
 					throw e;
 				}
 			}
+			return {
+				path: resolve(output_dir, await this.getOutputFilename()),
+				write_was_needed: true
+			};
 		} else {
-			console.log(
-				"skipping writing file",
-				await this.getOutputFilename()
-			);
+			return {
+				path: resolve(output_dir, await this.getOutputFilename()),
+				write_was_needed: false
+			};
 		}
 	}
 
-	async getURL(url_prefix: string): Promise<string> {
-		return `${url_prefix}/${await this.getOutputFilename()}`;
+	getURL(url_prefix: string): string {
+		return `${url_prefix}/${this.getOutputFilename()}`;
 	}
 
 	static async fromPath(path: string): Promise<FileSideEffect> {

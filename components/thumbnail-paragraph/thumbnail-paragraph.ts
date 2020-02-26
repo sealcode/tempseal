@@ -15,11 +15,11 @@ ThumbnailParagraph = async function(
 		sticky = false
 	}
 ) {
+	const image = await SideEffects.File.fromPath(image_path);
 	await SideEffects.Scss.addFromPath(
 		add_effect,
 		resolve(__dirname, "thumbnail-paragraph.scss")
 	);
-	const image = await SideEffects.File.fromPath(image_path);
 	add_effect(image);
 	add_effect(
 		new SideEffects.HtmlChunk(/* HTML */ `

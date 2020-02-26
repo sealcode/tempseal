@@ -16,7 +16,7 @@ export class ScssSideEffect extends MetaSideEffect {
 		this.stylesheet_getter = stylesheet_getter;
 	}
 	static async addFromPath(
-		add_effect: (SideEffect) => void,
+		add_effect: (effect: SideEffect) => SideEffect,
 		path: string
 	): Promise<void> {
 		assert.ok(isAbsolute(path), `Path '${path}' is not an absolute path`);

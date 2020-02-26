@@ -12,7 +12,6 @@ export class CssSideEffect extends SideEffect {
 		if (stylesheetOrGetter instanceof Function) {
 			this.stylesheet_getter = stylesheetOrGetter;
 		} else {
-			console.log("setting style!", stylesheetOrGetter);
 			this.cached_stylesheet = stylesheetOrGetter;
 		}
 	}

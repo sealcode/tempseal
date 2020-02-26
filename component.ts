@@ -8,6 +8,6 @@ export interface RenderResult {
 
 export interface IComponent {
 	// (context: Context, props: Object): RenderResult;
-	(add_effect: (effect: SideEffect) => void, props: any): Promise<void>;
+	(add_effect: (effect: SideEffect) => SideEffect, props: any): Promise<void>;
 	identifier?: string;
 }
