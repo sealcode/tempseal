@@ -18,9 +18,18 @@ function emitEffects(
 ): Observable<SideEffect> {
 	return new Observable<SideEffect>(subscriber => {
 		const promises = [];
+		const hashes = new Set();
 		const add_effect = (effect: SideEffect) => {
-			subscriber.next(effect);
-			return effect;
+			const promise = effect.getHash().then(hash => {
+				if (!hashes.has(hash)) {
+					hashes.add(hash);
+					console.log("emitting", effect);
+					subscriber.next(effect);
+				}
+			});
+
+			promises.push(promise);
+			return promise;
 		};
 		for (let { component_name, props } of document) {
 			let component: IComponent;
@@ -31,31 +40,11 @@ function emitEffects(
 			}
 			promises.push(component(add_effect, props));
 		}
-		Promise.all(promises).then(() => subscriber.complete());
+		Promise.all(promises).then(() => {
+			subscriber.complete();
+			console.log("done emitting items!");
+		});
 	}).pipe(shareReplay());
-}
-
-function deduplicate(effects: Observable<SideEffect>) {
-	return new Observable(subscriber => {
-		const hashes = new Set();
-		const promises = [];
-		effects.subscribe(
-			(effect: SideEffect) => {
-				promises.push(
-					effect.getHash().then(hash => {
-						if (!hashes.has(hash)) {
-							hashes.add(hash);
-							subscriber.next(effect);
-						}
-					})
-				);
-			},
-			null,
-			() => {
-				Promise.all(promises).then(() => subscriber.complete());
-			}
-		);
-	});
 }
 
 async function findInStream<T>(
@@ -74,6 +63,7 @@ function replaceUrlPlaceholders(effects: Observable<SideEffect>) {
 		const promises = [];
 		effects.subscribe(
 			effect => {
+				console.log("placeholders encountered", effect);
 				if (effect instanceof SideEffects.HtmlChunk) {
 					const find_promise = findInStream(effects, file_effect => {
 						return (
@@ -83,7 +73,7 @@ function replaceUrlPlaceholders(effects: Observable<SideEffect>) {
 								.includes(file_effect._hash)
 						);
 					}).then((match: SideEffects.File) => {
-						if (match)
+						if (match) {
 							subscriber.next(
 								new SideEffects.HtmlChunk(
 									effect.chunk.replace(
@@ -92,6 +82,9 @@ function replaceUrlPlaceholders(effects: Observable<SideEffect>) {
 									)
 								)
 							);
+						} else {
+							subscriber.next(effect);
+						}
 					});
 					promises.push(find_promise);
 				} else {
@@ -110,15 +103,6 @@ function replaceUrlPlaceholders(effects: Observable<SideEffect>) {
 function combineHtmlFile(
 	effects: Observable<SideEffect>
 ): Observable<SideEffect> {
-	const capture_types = [
-		SideEffects.Title,
-		SideEffects.HtmlChunk,
-		SideEffects.Css
-	];
-	const [captured_effects, other_effects] = partition(effect =>
-		capture_types.some(t => effect instanceof t)
-	)(effects) as [Observable<SideEffect>, Observable<SideEffect>];
-
 	let title = "";
 	let style = "";
 	let body = "";
@@ -126,18 +110,21 @@ function combineHtmlFile(
 	const promises = [];
 
 	const constructed_html = new Observable<SideEffect>(subscriber => {
-		captured_effects.subscribe(
+		effects.subscribe(
 			effect => {
 				if (effect instanceof SideEffects.Title) {
 					title = effect.title;
 				} else if (effect instanceof SideEffects.Css) {
 					promises.push(
 						(async () => {
+							console.log("adding style!");
 							style += await effect.getStylesheet();
 						})()
 					);
 				} else if (effect instanceof SideEffects.HtmlChunk) {
 					body += effect.chunk;
+				} else {
+					subscriber.next(effect);
 				}
 			},
 			null,
@@ -168,7 +155,7 @@ function combineHtmlFile(
 			}
 		);
 	});
-	return other_effects.pipe(merge(constructed_html));
+	return constructed_html;
 }
 
 interface WriteEvent {
@@ -207,7 +194,7 @@ async function test() {
 			}
 		}
 	] as TempsealDocument;
-	for (let i = 1; i <= 20; i++) {
+	for (let i = 1; i <= 100; i++) {
 		document.push({
 			component_name: "button",
 			props: { hehe: "hihi", text: "i come from props" }
@@ -215,7 +202,7 @@ async function test() {
 	}
 	emitEffects(getComponents(), document)
 		.pipe(
-			deduplicate,
+			// deduplicate,
 			replaceUrlPlaceholders,
 			combineHtmlFile,
 			write(path.resolve(__dirname, "public"))
@@ -223,7 +210,6 @@ async function test() {
 		.subscribe(
 			effect => {
 				console.log(effect.message);
-				// effect.write(path.resolve(__dirname, "public"));
 			},
 			null,
 			() => console.log(Date.now() - start, "ms")

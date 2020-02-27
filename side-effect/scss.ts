@@ -16,11 +16,11 @@ export class ScssSideEffect extends MetaSideEffect {
 		this.stylesheet_getter = stylesheet_getter;
 	}
 	static async addFromPath(
-		add_effect: (effect: SideEffect) => SideEffect,
+		add_effect: (effect: SideEffect) => Promise<SideEffect>,
 		path: string
 	): Promise<void> {
 		assert.ok(isAbsolute(path), `Path '${path}' is not an absolute path`);
-		add_effect(
+		await add_effect(
 			new CssSideEffect(async () => {
 				const data = await promisify(readFile)(path, {
 					encoding: "utf-8"
@@ -32,6 +32,7 @@ export class ScssSideEffect extends MetaSideEffect {
 				).css.toString();
 			})
 		);
+		console.log("emitted scss!");
 	}
 	async hash() {
 		return MD5(await this.stylesheet_getter());
