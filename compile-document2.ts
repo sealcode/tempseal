@@ -23,7 +23,6 @@ function emitEffects(
 			const promise = effect.getHash().then(hash => {
 				if (!hashes.has(hash)) {
 					hashes.add(hash);
-					console.log("emitting", effect);
 					subscriber.next(effect);
 				}
 			});
@@ -42,7 +41,6 @@ function emitEffects(
 		}
 		Promise.all(promises).then(() => {
 			subscriber.complete();
-			console.log("done emitting items!");
 		});
 	}).pipe(shareReplay());
 }
@@ -63,7 +61,6 @@ function replaceUrlPlaceholders(effects: Observable<SideEffect>) {
 		const promises = [];
 		effects.subscribe(
 			effect => {
-				console.log("placeholders encountered", effect);
 				if (effect instanceof SideEffects.HtmlChunk) {
 					const find_promise = findInStream(effects, file_effect => {
 						return (
@@ -117,7 +114,6 @@ function combineHtmlFile(
 				} else if (effect instanceof SideEffects.Css) {
 					promises.push(
 						(async () => {
-							console.log("adding style!");
 							style += await effect.getStylesheet();
 						})()
 					);
@@ -194,7 +190,7 @@ async function test() {
 			}
 		}
 	] as TempsealDocument;
-	for (let i = 1; i <= 100; i++) {
+	for (let i = 1; i <= 200; i++) {
 		document.push({
 			component_name: "button",
 			props: { hehe: "hihi", text: "i come from props" }
