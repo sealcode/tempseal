@@ -199,35 +199,21 @@ const write = (output_dir: string) =>
 
 async function test() {
 	const start = Date.now();
-	const effects = emitEffects(getComponents(), [
-		{
-			component_name: "button",
-			props: { hehe: "hihi", text: "i come from props" }
-		},
-		{
-			component_name: "button",
-			props: { hehe: "hihi", text: "i come from props" }
-		},
-		{
-			component_name: "button",
-			props: { hehe: "hihi", text: "i come from props" }
-		},
-		{
-			component_name: "button",
-			props: { hehe: "hihi", text: "i come from props" }
-		},
-		{
-			component_name: "button",
-			props: { hehe: "hihi", text: "i come from props" }
-		},
+	const document = [
 		{
 			component_name: "thumbnail-paragraph",
 			props: {
 				image_path: path.resolve(__dirname, "./components/image.png")
 			}
 		}
-	]);
-	effects
+	] as TempsealDocument;
+	for (let i = 1; i <= 20; i++) {
+		document.push({
+			component_name: "button",
+			props: { hehe: "hihi", text: "i come from props" }
+		});
+	}
+	emitEffects(getComponents(), document)
 		.pipe(
 			deduplicate,
 			replaceUrlPlaceholders,
