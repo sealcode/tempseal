@@ -24,6 +24,7 @@ function emitEffects(
 				if (!hashes.has(hash)) {
 					hashes.add(hash);
 					subscriber.next(effect);
+					console.log("Emitting effect", effect.type_name);
 				}
 			});
 

@@ -8,6 +8,7 @@ export class HtmlChunkSideEffect extends SideEffect {
 	name: "html-chunk";
 	constructor(chunk: string) {
 		super();
+		this.type_name = "html-chunk";
 		this.chunk = chunk;
 	}
 	getReferencedHashes(): Array<string> {

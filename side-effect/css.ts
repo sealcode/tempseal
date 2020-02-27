@@ -4,11 +4,11 @@ import { MD5 } from "object-hash";
 export class CssSideEffect extends SideEffect {
 	cached_stylesheet: string;
 	stylesheet_getter: () => Promise<string>;
-	name: "css";
 	constructor(stylesheetGetter: () => Promise<string>);
 	constructor(stylecheet: string);
 	constructor(stylesheetOrGetter: (() => Promise<string>) | string) {
 		super();
+		this.type_name = "css";
 		if (stylesheetOrGetter instanceof Function) {
 			this.stylesheet_getter = stylesheetOrGetter;
 		} else {

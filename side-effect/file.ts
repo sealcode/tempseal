@@ -11,7 +11,6 @@ const asyncStat = promisify(stat);
 const asyncAccess = promisify(access);
 
 export class FileSideEffect extends SideEffect {
-	name: "file";
 	generator: () => Readable;
 	deps: Array<any>;
 	filename: string;
@@ -19,6 +18,7 @@ export class FileSideEffect extends SideEffect {
 	basename: string;
 	constructor(filename: string, generator: () => Readable, deps: Array<any>) {
 		super();
+		this.type_name = "file";
 		this.generator = generator;
 		this.deps = deps;
 		this.filename = filename;

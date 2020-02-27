@@ -6,6 +6,7 @@ export class TitleSideEffect extends SideEffect {
 	static identifier = "title";
 	constructor(title: string) {
 		super();
+		this.type_name = "title";
 		this.title = title;
 	}
 	async hash() {

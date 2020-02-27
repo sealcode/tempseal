@@ -5,6 +5,7 @@ export abstract class SideEffect {
 	_hash: string;
 	url_placeholder: string;
 	performed = false;
+	type_name: string;
 	constructor() {
 		this._hash = null;
 	}
