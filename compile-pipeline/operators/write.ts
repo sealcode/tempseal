@@ -26,9 +26,6 @@ export const write = (output_dir: string) =>
 				e => subscriber.error(e),
 				() => {
 					Promise.all(promises).then(() => {
-						console.log(
-							"@@@@@@@@@@@@@@@@@@@@@@@@@@ all writes finished"
-						);
 						subscriber.complete();
 					});
 				}

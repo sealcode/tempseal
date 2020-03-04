@@ -13,7 +13,6 @@ export class ComponentMap {
 	}
 	add(component: IComponent) {
 		if (!component.identifier) {
-			console.log(component);
 			throw new Error(
 				"Component should have a static 'identifier' property"
 			);

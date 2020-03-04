@@ -25,7 +25,6 @@ export function emitEffects(
 				const hash = await effect.getHash();
 				if (!hashes.has(hash)) {
 					hashes.add(hash);
-					console.log("emitting!", effect);
 					subscriber.next(effect);
 				}
 				resolve(effect);
@@ -40,7 +39,6 @@ export function emitEffects(
 		}
 		Promise.all(promises)
 			.then(() => {
-				console.log("emitting end");
 				subscriber.complete();
 			})
 			.catch(error => {
