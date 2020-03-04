@@ -16,15 +16,17 @@ import { SideEffect } from "./side-effect";
 const asyncStat = promisify(stat);
 const asyncAccess = promisify(access);
 
+type Writable = Readable | string | Buffer;
+
 export class FileSideEffect extends SideEffect {
-	generator: () => Readable | string;
+	generator: () => Writable | Promise<Writable>;
 	deps: Array<any>;
 	filename: string;
 	extension: string;
 	basename: string;
 	constructor(
 		filename: string,
-		generator: () => Readable | string,
+		generator: () => Writable | Promise<Writable>
 		deps: Array<any>
 	) {
 		super();
@@ -47,7 +49,7 @@ export class FileSideEffect extends SideEffect {
 	}
 
 	async _write(output_dir: string): Promise<string> {
-		const input = this.generator();
+		const input = await this.generator();
 
 		const output_path = resolve(output_dir, this.getOutputFilename());
 		if (input instanceof Readable) {
