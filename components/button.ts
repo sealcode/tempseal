@@ -3,7 +3,7 @@ import { IComponent, SideEffects } from "../";
 
 export let button: IComponent;
 
-button = async function(add_effect, { text }: { text: string }) {
+button = async function(add_effect, config, { text }: { text: string }) {
 	const image = await SideEffects.File.fromPath(
 		path.resolve(__dirname, "./image.png")
 	);

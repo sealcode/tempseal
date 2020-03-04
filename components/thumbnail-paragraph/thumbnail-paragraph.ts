@@ -1,10 +1,11 @@
 import { resolve } from "path";
-import { SideEffects, IComponent } from "../../";
+import { SideEffects, IComponent, Config } from "../../";
 
 export let ThumbnailParagraph: IComponent;
 
 ThumbnailParagraph = async function(
 	add_effect,
+	config: Config.Config,
 	{
 		image_path,
 		img_side,
@@ -20,6 +21,7 @@ ThumbnailParagraph = async function(
 	await Promise.all([
 		await SideEffects.Scss.addFromPath(
 			add_effect,
+			config,
 			resolve(__dirname, "thumbnail-paragraph.scss")
 		),
 		add_effect(image),

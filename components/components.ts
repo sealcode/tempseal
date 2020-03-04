@@ -4,6 +4,7 @@ import { ThumbnailParagraph } from "./thumbnail-paragraph/thumbnail-paragraph";
 
 export class ComponentMap {
 	map: Map<String, IComponent>;
+
 	constructor(components: Array<IComponent>) {
 		this.map = new Map();
 		for (let component of components) {
@@ -19,8 +20,12 @@ export class ComponentMap {
 		}
 		this.map.set(component.identifier, component);
 	}
-	get(component_name: string) {
-		return this.map.get(component_name);
+	get(component_name: string): IComponent {
+		const component = this.map.get(component_name);
+		if (!component) {
+			throw new Error(`unknown component: ${component_name}`);
+		}
+		return component;
 	}
 }
 

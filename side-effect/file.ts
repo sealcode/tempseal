@@ -1,4 +1,10 @@
-import { createReadStream, createWriteStream, stat, access } from "fs";
+import {
+	createReadStream,
+	createWriteStream,
+	stat,
+	access,
+	writeFile
+} from "fs";
 import { promisify } from "util";
 import { Readable } from "stream";
 import * as assert from "assert";
@@ -11,12 +17,16 @@ const asyncStat = promisify(stat);
 const asyncAccess = promisify(access);
 
 export class FileSideEffect extends SideEffect {
-	generator: () => Readable;
+	generator: () => Readable | string;
 	deps: Array<any>;
 	filename: string;
 	extension: string;
 	basename: string;
-	constructor(filename: string, generator: () => Readable, deps: Array<any>) {
+	constructor(
+		filename: string,
+		generator: () => Readable | string,
+		deps: Array<any>
+	) {
 		super();
 		this.type_name = "file";
 		this.generator = generator;
@@ -38,15 +48,20 @@ export class FileSideEffect extends SideEffect {
 
 	async _write(output_dir: string): Promise<string> {
 		const input = this.generator();
-		const output = createWriteStream(
-			resolve(output_dir, await this.getOutputFilename())
-		);
-		input.pipe(output);
-		return new Promise((resolve, reject) => {
-			output.on("end", resolve);
-			input.on("error", reject);
-			output.on("error", reject);
-		});
+
+		const output_path = resolve(output_dir, this.getOutputFilename());
+		if (input instanceof Readable) {
+			const output = createWriteStream(output_path);
+			input.pipe(output);
+			await new Promise((resolve, reject) => {
+				output.on("end", resolve);
+				input.on("error", reject);
+				output.on("error", reject);
+			});
+		} else {
+			await promisify(writeFile)(output_path, input);
+		}
+		return output_path;
 	}
 
 	async _isWriteNecessary(output_dir: string): Promise<Boolean> {
@@ -86,7 +101,7 @@ export class FileSideEffect extends SideEffect {
 	}
 
 	getURL(url_prefix: string): string {
-		return `${url_prefix}/${this.getOutputFilename()}`;
+		return `${url_prefix}${this.getOutputFilename()}`;
 	}
 
 	static async fromPath(path: string): Promise<FileSideEffect> {

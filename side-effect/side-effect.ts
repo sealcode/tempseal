@@ -1,12 +1,12 @@
-import { SideEffects } from "..";
+import { SideEffects, Config } from "..";
 
 export abstract class SideEffect {
 	abstract hash(): Promise<string>;
-	_hash: string;
+	_hash: string | null;
 	url_placeholder: string;
 	performed = false;
 	type_name: string;
-	constructor() {
+	constructor(public config?: Config.Config | undefined) {
 		this._hash = null;
 	}
 	async getHash(): Promise<string> {
@@ -25,5 +25,6 @@ export abstract class SideEffect {
 }
 
 export abstract class MetaSideEffect extends SideEffect {
+	public config: Config.Config;
 	// a meta-side effect is a side effect that produces its own side effects
 }

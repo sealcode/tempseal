@@ -1,5 +1,7 @@
 import { SideEffect } from "./side-effect";
 import { MD5 } from "object-hash";
+import { readFile } from "fs";
+import { promisify } from "util";
 
 export class CssSideEffect extends SideEffect {
 	cached_stylesheet: string;
@@ -23,5 +25,10 @@ export class CssSideEffect extends SideEffect {
 	}
 	async hash() {
 		return MD5(await this.getStylesheet());
+	}
+	static fromFile(path: string) {
+		return new CssSideEffect(async () => {
+			return promisify(readFile)(path, { encoding: "utf-8" });
+		});
 	}
 }

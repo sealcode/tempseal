@@ -1,5 +1,4 @@
 import { SideEffect } from "./side-effect";
-import { MD5 } from "object-hash";
 
 let count = 0;
 
