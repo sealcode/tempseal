@@ -22,12 +22,20 @@ export function emitEffects(
 			const promise = new Promise<SideEffect>(async (resolve, reject) => {
 				const effect = await effect_promise;
 
-				const hash = await effect.getHash();
-				if (!hashes.has(hash)) {
-					hashes.add(hash);
-					subscriber.next(effect);
+				let hash;
+				try {
+					hash = await effect.getHash();
+					if (!hashes.has(hash)) {
+						hashes.add(hash);
+						subscriber.next(effect);
+					}
+					resolve(effect);
+				} catch (e) {
+					console.error(e);
+					subscriber.error(e);
+					console.error(effect);
+					reject(e);
 				}
-				resolve(effect);
 			});
 			promises.push(promise);
 			return promise;
@@ -39,6 +47,7 @@ export function emitEffects(
 		}
 		Promise.all(promises)
 			.then(() => {
+				console.log("done emitting!");
 				subscriber.complete();
 			})
 			.catch(error => {

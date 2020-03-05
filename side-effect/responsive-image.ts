@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { default as sharp } from "sharp";
 import * as fs from "fs";
 
-import { SideEffects } from "../";
+import { SideEffects, SideEffect } from "../";
 
 /*
     image_path: string
@@ -21,44 +21,65 @@ function generate_responsive_filename(image_path: string, resolution: number) {
 	return `${image_basename}-${resolution}w${extension}`;
 }
 
+async function generate_resolutions(image: sharp.Sharp) {
+	const { width } = await image.metadata();
+
+	if (!width) {
+		throw new Error("Could not read image width!");
+	}
+	const resolutions = [];
+	for (let i = 100; i <= width; i += 100) {
+		resolutions.push(i);
+	}
+	for (let i = 10; i < 100; i += 10) {
+		resolutions.push(i);
+	}
+	resolutions.push(width);
+	return resolutions;
+}
+
 interface IResponsiveImageArgs {
 	image_path: string;
-	resolutions: number[];
 	sizes_attr: string;
 	alt: string;
-	custom_class: string;
+	custom_class?: string;
+	resolutions?: number[];
 }
 
 export async function ResponsiveImageSideEffect(
-	add_effect: Function,
+	add_effect: (effect: SideEffect) => Promise<SideEffect>,
 	{
 		image_path,
-		resolutions,
 		sizes_attr,
+		resolutions,
 		alt = "",
 		custom_class = ""
 	}: IResponsiveImageArgs
 ) {
 	let first_image: SideEffects.File | null = null;
 	const file_info = await promisify(fs.stat)(image_path);
+	const image = sharp(image_path);
+
+	if (!resolutions) {
+		resolutions = await generate_resolutions(image);
+	}
 
 	const created_files = await Promise.all(
 		resolutions.map(async (resolution: number) => {
-			const image = new SideEffects.File(
+			const image_effect = new SideEffects.File(
 				generate_responsive_filename(image_path, resolution),
 				() =>
-					sharp(image_path)
+					image
 						.resize(resolution)
 						.toFormat("webp")
 						.toBuffer(),
-
 				[image_path, resolution, file_info.mtime]
 			);
-			await add_effect(image);
+			await add_effect(image_effect);
 			if (!first_image) {
-				first_image = image;
+				first_image = image_effect;
 			}
-			return `${await image.getUrlPlaceholder()} ${resolution}w`;
+			return `${await image_effect.getUrlPlaceholder()} ${resolution}w`;
 		})
 	);
 	//Generate appropriate responsive img tag

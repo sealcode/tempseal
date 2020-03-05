@@ -24,7 +24,7 @@ function get_config_preamble(config: Config.Config): string {
 	}
 
 	preamble_elements.push(`
-    @mixin font($type, $weight){
+	@mixin font($type, $weight:400){
 		font-family: _font($type, $weight);
 		font-weight: $weight;
     }
@@ -32,9 +32,12 @@ function get_config_preamble(config: Config.Config): string {
 
 	preamble_elements.push(`
 	@function px-to-rem($px) {
-		@return #{$px / ${config.rem_size}}rem;
+		@return #{$px / ${config.layout["rem-size"]}}rem;
 	}
-`);
+						   `);
+	preamble_elements.push(
+		`$layout-container-width: ${config.layout["container-width"]};`
+	);
 
 	const preamble = preamble_elements.join("\n");
 	config_preambles.set(config, preamble);

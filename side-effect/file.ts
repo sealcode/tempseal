@@ -26,7 +26,7 @@ export class FileSideEffect extends SideEffect {
 	basename: string;
 	constructor(
 		filename: string,
-		generator: () => Writable | Promise<Writable>
+		generator: () => Writable | Promise<Writable>,
 		deps: Array<any>
 	) {
 		super();
