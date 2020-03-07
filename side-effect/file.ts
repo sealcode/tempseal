@@ -10,7 +10,7 @@ import { Readable } from "stream";
 import * as assert from "assert";
 import { MD5 } from "object-hash";
 import { basename, extname, resolve, isAbsolute } from "path";
-import makeDir = require("make-dir");
+import makeDir from "make-dir";
 import { SideEffect } from "./side-effect";
 
 const asyncStat = promisify(stat);
@@ -50,13 +50,14 @@ export class FileSideEffect extends SideEffect {
 
 	async _write(output_dir: string): Promise<string> {
 		const input = await this.generator();
-
 		const output_path = resolve(output_dir, this.getOutputFilename());
 		if (input instanceof Readable) {
 			const output = createWriteStream(output_path);
-			input.pipe(output);
 			await new Promise((resolve, reject) => {
-				output.on("end", resolve);
+				input.pipe(output);
+				output.on("finish", () => {
+					resolve();
+				});
 				input.on("error", reject);
 				output.on("error", reject);
 			});

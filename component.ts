@@ -7,14 +7,14 @@ export interface RenderResult {
 	side_effects: Array<SideEffect>;
 }
 
-export interface IComponent {
+export interface IComponent<ParamType = any> {
 	// (context: Context, props: Object): RenderResult;
 	(
 		add_effect: (
 			effect: SideEffect | Promise<SideEffect>
 		) => Promise<SideEffect>,
 		config: Config.Config,
-		props: any
+		props: ParamType
 	): Promise<void>;
 	identifier?: string;
 }

@@ -1,9 +1,13 @@
 import path from "path";
 import { IComponent, SideEffects } from "../";
 
-export let button: IComponent;
+export let button: IComponent<IButtonProps>;
 
-button = async function(add_effect, config, { text }: { text: string }) {
+interface IButtonProps {
+	text: string;
+}
+
+button = async function(add_effect, _config, { text }: IButtonProps) {
 	const image = await SideEffects.File.fromPath(
 		path.resolve(__dirname, "./image.png")
 	);

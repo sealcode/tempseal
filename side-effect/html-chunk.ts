@@ -1,8 +1,8 @@
-import { SideEffect } from "./side-effect";
+import { SideEffectWithPlaceholders } from "./side-effect";
 
 let count = 0;
 
-export class HtmlChunkSideEffect extends SideEffect {
+export class HtmlChunkSideEffect extends SideEffectWithPlaceholders {
 	chunk: string;
 	name: "html-chunk";
 	constructor(chunk: string) {
@@ -10,10 +10,8 @@ export class HtmlChunkSideEffect extends SideEffect {
 		this.type_name = "html-chunk";
 		this.chunk = chunk;
 	}
-	getReferencedHashes(): Array<string> {
-		return (this.chunk.match(/\#\{[-a-zA-Z0-9]+\}/g) || []).map(s =>
-			s.replace(/[\{\}\#]/g, "")
-		);
+	async getContent() {
+		return Promise.resolve(this.chunk);
 	}
 	async hash() {
 		return `html-chunk-${count++}`;

@@ -14,3 +14,4 @@ export { SideEffect, MetaSideEffect } from "./side-effect/side-effect";
 export * as CompilePipeline from "./compile-pipeline";
 
 export * as Config from "./config/config";
+export * from "./embed-component";

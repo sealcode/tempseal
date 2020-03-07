@@ -3,22 +3,44 @@ import { default as Color } from "color";
 export interface IColorsConfigObject {
 	primary?: string;
 	secondary?: string;
-	"primary-text-on-primary"?: string;
-	"primary-text-on-secondary"?: string;
-	"primary-text-on-white"?: string;
-	"secondary-text-on-white"?: string;
+	"body-text-on-primary"?: string;
+	"title-text-on-primary": string;
+	"body-text-on-secondary"?: string;
+	"title-text-on-secondary"?: string;
+	"title-text-on-white"?: string;
+	"body-text-on-white"?: string;
 	[colorName: string]: string | undefined;
 }
+
+//colors from https://clrs.cc/
+const defaultBaseColors: { [color: string]: string } = {
+	navy: "#001f3f",
+	blue: "#0074D9",
+	aqua: "#7FDBFF",
+	teal: "#39CCCC",
+	olive: "#3D9970",
+	green: "#2ECC40",
+	lime: "#01FF70",
+	yellow: "#FFDC00",
+	orange: "#FF851B",
+	red: "#FF4136",
+	maroon: "#85144b",
+	fuchsia: "#F012BE",
+	purple: "#B10DC9",
+	black: "#111111",
+	gray: "#AAAAAA",
+	silver: "#ddd"
+};
 
 export class ColorsConfig {
 	"primary": string;
 	"secondary": string;
-	"primary-text-on-primary": string;
-	"primary-text-on-secondary": string;
-	"primary-text-on-white": string;
-	"secondary-text-on-white": string;
-	"primary-text-on-primary_secondary": string;
-	"secondary-text-on-primary_secondary": string;
+	"title-text-on-primary": string;
+	"body-text-on-primary": string;
+	"title-text-on-secondary": string;
+	"body-text-on-secondary": string;
+	"title-text-on-white": string;
+	"body-text-on-white": string;
 	"primary-00": string;
 	"primary-01": string;
 	"primary-02": string;
@@ -58,31 +80,38 @@ export class ColorsConfig {
 				.hex();
 		}
 
-		for (const variant_a of ["primary", "secondary"]) {
-			for (const variant_b of ["primary", "secondary", "white"]) {
-				const variant_name = `${variant_a}-text-on-${variant_b}`;
+		for (const color_role of ["title", "body"]) {
+			for (const color_variant of ["primary", "secondary", "white"]) {
+				const variant_name = `${color_role}-text-on-${color_variant}`;
 				const color_value = colors_config[variant_name];
 				if (color_value) {
 					this[variant_name] = color_value;
 				} else {
 					this[variant_name] = Color(
-						colors_config[variant_b]
+						colors_config[color_variant]
 					).isDark()
 						? "white"
-						: "black";
+						: "#333";
 				}
 			}
 		}
 
-		for (const variant of ["primary", "secondary"] as (
-			| "primary"
-			| "secondary"
-		)[]) {
-			const color = Color(this[variant]);
+		this["primary-text-on-white"] = "#333";
+
+		for (let base_color_name in defaultBaseColors) {
+			this[base_color_name] = defaultBaseColors[base_color_name];
+		}
+
+		for (const color_name of [
+			"primary",
+			"secondary",
+			...Object.keys(defaultBaseColors)
+		] as ("primary" | "secondary")[]) {
+			const color = Color(this[color_name] as string);
 			const hue = color.hue();
 			const saturationl = color.saturationl();
 			for (let i = 0; i <= 10; i++) {
-				this[`${variant}-${i < 10 ? 0 : ""}${i}`] = Color({
+				this[`${color_name}-${i < 10 ? 0 : ""}${i}`] = Color({
 					h: hue,
 					s: saturationl,
 					l: (i / 10) * 100

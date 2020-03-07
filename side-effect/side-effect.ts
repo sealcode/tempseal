@@ -28,3 +28,12 @@ export abstract class MetaSideEffect extends SideEffect {
 	public config: Config.Config;
 	// a meta-side effect is a side effect that produces its own side effects
 }
+
+export abstract class SideEffectWithPlaceholders extends SideEffect {
+	abstract getContent(): Promise<string>;
+	async getReferencedHashes(): Promise<string[]> {
+		return (
+			(await this.getContent()).match(/\#\{[-a-zA-Z0-9]+\}/g) || []
+		).map(s => s.replace(/[\{\}\#]/g, ""));
+	}
+}

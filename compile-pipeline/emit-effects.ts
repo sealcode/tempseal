@@ -47,7 +47,6 @@ export function emitEffects(
 		}
 		Promise.all(promises)
 			.then(() => {
-				console.log("done emitting!");
 				subscriber.complete();
 			})
 			.catch(error => {

@@ -21,7 +21,8 @@ export const combineHtml = (
 						promises.push(
 							(async () => {
 								try {
-									style += await effect.getStylesheet();
+									const style_chunk = await effect.getStylesheet();
+									style += style_chunk;
 								} catch (e) {
 									console.log("caught error!");
 									subscriber.error(e);
@@ -92,6 +93,10 @@ export const combineHtml = (
 											html,
 											body {
 												min-height: 100vh;
+											}
+
+											body {
+												font-size: calc( 2rem / 3 );
 											}
 
 											body,

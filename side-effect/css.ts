@@ -1,9 +1,9 @@
-import { SideEffect } from "./side-effect";
+import { SideEffectWithPlaceholders } from "./side-effect";
 import { MD5 } from "object-hash";
 import { readFile } from "fs";
 import { promisify } from "util";
 
-export class CssSideEffect extends SideEffect {
+export class CssSideEffect extends SideEffectWithPlaceholders {
 	cached_stylesheet: string;
 	stylesheet_getter: () => Promise<string>;
 	constructor(stylesheetGetter: () => Promise<string>);
@@ -16,6 +16,9 @@ export class CssSideEffect extends SideEffect {
 		} else {
 			this.cached_stylesheet = stylesheetOrGetter;
 		}
+	}
+	getContent() {
+		return this.getStylesheet();
 	}
 	async getStylesheet() {
 		if (!this.cached_stylesheet) {
