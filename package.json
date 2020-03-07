@@ -11,6 +11,10 @@
 	},
 	"author": "Sealcode",
 	"license": "ISC",
+	"files": [
+		"**/*.js",
+		"**/*.d.ts"
+	],
 	"dependencies": {
 		"bluebird": "^3.7.1",
 		"color": "^3.1.2",
