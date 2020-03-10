@@ -16,12 +16,13 @@ export function emitEffects(
 	return new Observable<SideEffect>(subscriber => {
 		const promises = [];
 		const hashes = new Set<string>();
-		const add_effect = (
+		let order = 0;
+		const add_effect_gen = (order: number) => (
 			effect_promise: Promise<SideEffect> | SideEffect
 		) => {
 			const promise = new Promise<SideEffect>(async (resolve, reject) => {
 				const effect = await effect_promise;
-
+				effect.setOrder(order);
 				let hash;
 				try {
 					hash = await effect.getHash();
@@ -43,7 +44,8 @@ export function emitEffects(
 		for (let { component_name, props } of document) {
 			let component: IComponent;
 			component = components.get(component_name);
-			promises.push(component(add_effect, config, props));
+			promises.push(component(add_effect_gen(order), config, props));
+			order++;
 		}
 		Promise.all(promises)
 			.then(() => {
@@ -54,5 +56,5 @@ export function emitEffects(
 			});
 
 		// is shareReplay necessary here??
-	}).pipe(shareReplay());
+	});
 }

@@ -3,8 +3,11 @@ import {
 	createWriteStream,
 	stat,
 	access,
-	writeFile
+	writeFile,
+	link,
+	unlink
 } from "fs";
+
 import { promisify } from "util";
 import { Readable } from "stream";
 import * as assert from "assert";
@@ -18,16 +21,27 @@ const asyncAccess = promisify(access);
 
 type Writable = Readable | string | Buffer;
 
+async function fileExists(path: string) {
+	try {
+		await asyncAccess(path);
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
+
 export class FileSideEffect extends SideEffect {
 	generator: () => Writable | Promise<Writable>;
 	deps: Array<any>;
 	filename: string;
 	extension: string;
 	basename: string;
+	name_is_exact: boolean;
 	constructor(
 		filename: string,
 		generator: () => Writable | Promise<Writable>,
-		deps: Array<any>
+		deps: Array<any>,
+		name_is_exact = false
 	) {
 		super();
 		this.type_name = "file";
@@ -39,6 +53,7 @@ export class FileSideEffect extends SideEffect {
 			0,
 			filename.length - this.extension.length
 		);
+		this.name_is_exact = name_is_exact;
 	}
 	async hash() {
 		return MD5(this.deps);
@@ -63,6 +78,13 @@ export class FileSideEffect extends SideEffect {
 			});
 		} else {
 			await promisify(writeFile)(output_path, input);
+		}
+		if (this.name_is_exact) {
+			const exact_path = resolve(output_dir, this.filename);
+			if (await fileExists(exact_path)) {
+				await promisify(unlink)(exact_path);
+			}
+			await promisify(link)(output_path, exact_path);
 		}
 		return output_path;
 	}

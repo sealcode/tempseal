@@ -48,15 +48,18 @@ function get_config_preamble(config: Config.Config): string {
 
 	preamble_elements.push(`
 	*{
-		@include font("body", 400)
+		@include font("body", 400);
 
 	}
+	strong {
+		@include font("body", 800);
+	}
     h1,h2,h3,h4,h5,h6{
-		@include font("title", 700)
+		@include font("title", 700);
+		color: $colors-title-text-on-white;
 	}
     `);
 	const preamble = preamble_elements.join("\n");
-	console.log(preamble);
 	config_preambles.set(config, preamble);
 	return preamble;
 }

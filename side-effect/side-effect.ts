@@ -6,8 +6,12 @@ export abstract class SideEffect {
 	url_placeholder: string;
 	performed = false;
 	type_name: string;
+	public order: number;
 	constructor(public config?: Config.Config | undefined) {
 		this._hash = null;
+	}
+	setOrder(order: number) {
+		this.order = order;
 	}
 	async getHash(): Promise<string> {
 		if (!this._hash) {

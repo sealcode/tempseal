@@ -1,6 +1,6 @@
-interface Segment {
+interface ISgement {
 	component_name: string;
-	props: object;
+	props: any;
 }
 
-export type TempsealDocument = Array<Segment>;
+export type TempsealDocument = Array<ISgement>;

@@ -65,6 +65,8 @@ export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 									const new_effect = new (effect.constructor as {
 										new (n: string): SideEffect;
 									})(chunk);
+									new_effect.setOrder(effect.order);
+									new_effect._hash = effect._hash;
 									subscriber.next(new_effect);
 								}
 							)

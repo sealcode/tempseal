@@ -3,12 +3,15 @@ import { Observable, Subscriber } from "rxjs";
 import { SideEffect, SideEffects } from "../../";
 
 export const combineHtml = (
-	handle_result: (content: string, subscriber: Subscriber<SideEffect>) => void
+	handle_result: (
+		content: string,
+		subscriber: Subscriber<SideEffect>
+	) => void | Promise<void>
 ) =>
 	function(effects: Observable<SideEffect>): Observable<SideEffect> {
 		let title = "";
 		let style = "";
-		let body = "";
+		let html_chunk_effects: SideEffects.HtmlChunk[] = [];
 
 		const promises = [] as Promise<any>[];
 
@@ -30,7 +33,7 @@ export const combineHtml = (
 							})()
 						);
 					} else if (effect instanceof SideEffects.HtmlChunk) {
-						body += effect.chunk;
+						html_chunk_effects.push(effect);
 					} else {
 						subscriber.next(effect);
 					}
@@ -39,51 +42,56 @@ export const combineHtml = (
 				async () => {
 					try {
 						await Promise.all(promises);
+						const body = html_chunk_effects
+							.sort((e1, e2) => (e1.order > e2.order ? 1 : -1))
+							.map(e => e.chunk)
+							.join("\n");
 						const content = /* HTML */ `
 							<!DOCTYPE html>
 							<html>
 								<head>
 									<title>${title}</title>
 									<style>
-																			body {
-																				padding-left: 0;
-																				padding-bottom: 0;
-																				padding-right: 0;
-																			}
+											body {
+												padding-left: 0;
+												padding-bottom: 0;
+												padding-right: 0;
+											}
 
-																			* {
-																				box-sizing: border-box;
-																				line-height: 1rem;
-																				font-size: px-to-rem(16);
-																				margin: 0;
-																			}
+											* {
+												box-sizing: border-box;
+												line-height: 1rem;
+												font-size: px-to-rem(16);
+												margin: 0;
+											}
 
-																			p,
-																			ul,
-																			li {
-																				max-width: 32rem;
-																			}
+											p,
+											ul,
+											li {
+												max-width: 32rem;
+											}
 
-																			ul,
-																			ol {
-																				padding-left: 2rem;
-																			}
+											ul,
+											ol {
+												padding-left: 2rem;
+											}
 
-																			img {
-																				vertical-align: bottom;
-																			}
+											img {
+												vertical-align: bottom;
+											}
 
-																			h1 {
-																				font-size: 1.75rem;
-																			}
+											h1 {
+												font-size: 1.75rem;
+											}
 
-																			h2 {
-																				font-size: 1.25rem;
-																			}
+											h2 {
+												font-size: 1.25rem;
+												line-height: 2rem;
+											}
 
-																			input[type="submit"] {
-																				cursor: pointer;
-																			}
+											input[type="submit"] {
+												cursor: pointer;
+											}
 											html {
 												font-size: 1.5em;
 												scroll-behavior: smooth;

@@ -21,11 +21,9 @@ function generate_responsive_filename(image_path: string, resolution: number) {
 	return `${image_basename}-${resolution}w${extension}`;
 }
 
-async function generate_resolutions(image: sharp.Sharp) {
-	const { width } = await image.metadata();
-
+async function generate_resolutions({ width }: { width?: number }) {
 	if (!width) {
-		throw new Error("Could not read image width!");
+		throw new Error("Could not determine image's width!");
 	}
 	const resolutions = [];
 	for (let i = 100; i <= width; i += 100) {
@@ -57,11 +55,12 @@ export async function ResponsiveImageSideEffect(
 	}: IResponsiveImageArgs
 ) {
 	let first_image: SideEffects.File | null = null;
-	const file_info = await promisify(fs.stat)(image_path);
 	const image = sharp(image_path);
 
+	const file_info = await promisify(fs.stat)(image_path);
+	const { width, height } = await image.metadata();
 	if (!resolutions) {
-		resolutions = await generate_resolutions(image);
+		resolutions = await generate_resolutions({ width });
 	}
 
 	const created_files = await Promise.all(
@@ -83,7 +82,8 @@ export async function ResponsiveImageSideEffect(
 		})
 	);
 	//Generate appropriate responsive img tag
-	return /* HTML  */ `<img class="${custom_class || ""}" src="${
+	return /* HTML  */ `<img class="${custom_class ||
+		""}" width="${width}" height="${height}" src="${
 		first_image
 			? await (first_image as SideEffects.File).getUrlPlaceholder()
 			: ""

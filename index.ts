@@ -1,5 +1,4 @@
 export * from "./component";
-export * from "./prop-control";
 export * from "./tempseal-document";
 export * from "./components/components";
 
@@ -15,3 +14,4 @@ export * as CompilePipeline from "./compile-pipeline";
 
 export * as Config from "./config/config";
 export * from "./embed-component";
+export * from "./render-to-file";

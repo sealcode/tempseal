@@ -9,7 +9,7 @@ import { SideEffect, SideEffects } from "../../";
 
 const asyncAccess = promisify(access);
 
-export const downloadFonts = (main_output_dir: string) => (
+export const downloadFonts = (main_output_dir: string, base_url = "/") => (
 	effects: Observable<SideEffect>
 ) =>
 	new Observable<SideEffect>(subscriber => {
@@ -33,7 +33,7 @@ export const downloadFonts = (main_output_dir: string) => (
 								outputDir: join(main_output_dir, "fonts"),
 								cssFile: css_filename,
 								overwriting: true,
-								path: "/fonts/"
+								path: base_url + "fonts/"
 							});
 						})
 						.finally(() => {
