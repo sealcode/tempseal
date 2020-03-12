@@ -36,7 +36,7 @@ async function generate_resolutions({ width }: { width?: number }) {
 	return resolutions;
 }
 
-interface IResponsiveImageArgs {
+export interface IResponsiveImageArgs {
 	image_path: string;
 	sizes_attr: string;
 	alt: string;

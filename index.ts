@@ -15,3 +15,5 @@ export * as CompilePipeline from "./compile-pipeline";
 export * as Config from "./config/config";
 export * from "./embed-component";
 export * from "./render-to-file";
+
+export type THeaderLevel = 1|2|3|4|5|6;
