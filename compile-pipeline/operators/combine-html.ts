@@ -82,6 +82,7 @@ export const combineHtml = (
 
 											h1 {
 												font-size: 1.75rem;
+												line-height: 2rem;
 											}
 
 											h2 {
