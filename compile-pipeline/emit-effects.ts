@@ -1,11 +1,11 @@
 import { Observable } from "rxjs";
-import { shareReplay } from "rxjs/operators";
 import {
 	ComponentMap,
 	TempsealDocument,
 	IComponent,
 	SideEffect,
-	Config
+	Config,
+	Context
 } from "../";
 
 export function emitEffects(
@@ -44,7 +44,8 @@ export function emitEffects(
 		for (let { component_name, props } of document) {
 			let component: IComponent;
 			component = components.get(component_name);
-			promises.push(component(add_effect_gen(order), config, props));
+			const context = new Context(add_effect_gen(order), config);
+			promises.push(component(context, props));
 			order++;
 		}
 		Promise.all(promises)

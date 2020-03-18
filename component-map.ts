@@ -1,6 +1,6 @@
-import { IComponent } from "../component";
+import { IComponent } from ".";
 
-export class ComponentMap {
+export default class ComponentMap {
 	map: Map<String, IComponent>;
 
 	constructor(components: Array<IComponent>) {

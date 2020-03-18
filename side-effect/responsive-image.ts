@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { default as sharp } from "sharp";
 import * as fs from "fs";
 
-import { SideEffects, SideEffect } from "../";
+import { SideEffects, Context } from "../";
 
 /*
     image_path: string
@@ -45,7 +45,7 @@ export interface IResponsiveImageArgs {
 }
 
 export async function ResponsiveImageSideEffect(
-	add_effect: (effect: SideEffect) => Promise<SideEffect>,
+	context: Context,
 	{
 		image_path,
 		sizes_attr,
@@ -74,7 +74,7 @@ export async function ResponsiveImageSideEffect(
 						.toBuffer(),
 				[image_path, resolution, file_info.mtime]
 			);
-			await add_effect(image_effect);
+			await context.add_effect(image_effect);
 			if (!first_image) {
 				first_image = image_effect;
 			}

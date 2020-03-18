@@ -1,10 +1,9 @@
-import { IComponent, SideEffect, SideEffects, Config } from "./";
+import { IComponent, SideEffect, SideEffects, Config, Context } from "./";
 
 Promise.resolve("string");
 
 export async function embedComponent<ParamType>(
-	add_effect: (effect: SideEffect) => Promise<SideEffect>,
-	config: Config.Config,
+	parent_context: Context,
 	params: ParamType,
 	component: IComponent<ParamType>
 ) {
@@ -13,10 +12,11 @@ export async function embedComponent<ParamType>(
 		if (effect instanceof SideEffects.HtmlChunk) {
 			html += effect.chunk;
 		} else {
-			await add_effect(effect);
+			await parent_context.add_effect(effect);
 		}
 		return effect;
 	};
-	await component(capture_effects, config, params);
+	const context = new Context(capture_effects, parent_context.config);
+	await component(context, params);
 	return html;
 }

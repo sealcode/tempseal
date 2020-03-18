@@ -7,7 +7,7 @@ import { promisify } from "util";
 import { isAbsolute, resolve as path_resolve } from "path";
 
 import { MetaSideEffect, SideEffect } from "./side-effect";
-import { SideEffects } from "../";
+import { SideEffects, Context } from "../";
 import { CssSideEffect } from "./css";
 import { GoogleFontSideEffect } from "./google-font";
 import { Config } from "../";
@@ -75,20 +75,19 @@ export class ScssSideEffect extends MetaSideEffect {
 		this.stylesheet_getter = stylesheet_getter;
 	}
 	static async addFromPath(
-		add_effect: (effect: SideEffect) => Promise<SideEffect>,
-		config: Config.Config,
+		context: Context,
 		scss_file_path: string
 	): Promise<void> {
 		assert.ok(
 			isAbsolute(scss_file_path),
 			`Path '${scss_file_path}' is not an absolute path`
 		);
-		await add_effect(
+		await context.add_effect(
 			new CssSideEffect(async () => {
 				const data = await promisify(readFile)(scss_file_path, {
 					encoding: "utf-8"
 				});
-				const preamble = get_config_preamble(config);
+				const preamble = get_config_preamble(context.config);
 				return (
 					await promisify(scss.render)({
 						data: preamble + data,
@@ -98,11 +97,11 @@ export class ScssSideEffect extends MetaSideEffect {
 								weight: types.Number,
 								done: SassFunctionCallback
 							) => {
-								const font_family = config.fonts.getFamily(
+								const font_family = context.config.fonts.getFamily(
 									font_type.getValue()
 								);
 								if (font_family) {
-									add_effect(
+									context.add_effect(
 										new GoogleFontSideEffect(
 											font_family,
 											weight.getValue()
@@ -129,7 +128,7 @@ export class ScssSideEffect extends MetaSideEffect {
 									const effect: SideEffect = await SideEffects.File.fromPath(
 										path_to_asset
 									);
-									await add_effect(effect);
+									await context.add_effect(effect);
 									done(
 										types.String(
 											await effect.getUrlPlaceholder()

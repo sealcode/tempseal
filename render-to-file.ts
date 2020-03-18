@@ -1,3 +1,5 @@
+import chalk from "chalk";
+
 import { emitEffects } from "./compile-pipeline";
 import {
 	combineHtml,
@@ -5,10 +7,7 @@ import {
 	replaceUrlPlaceholders,
 	downloadFonts
 } from "./compile-pipeline/operators";
-import { ComponentMap } from "./components/components";
-import { Config, TempsealDocument, SideEffects } from "./";
-
-import chalk from "chalk";
+import { Config, TempsealDocument, SideEffects, ComponentMap } from "./";
 
 export function renderToFile(
 	components: ComponentMap,
