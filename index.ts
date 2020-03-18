@@ -2,6 +2,9 @@ export * from "./component";
 export * from "./tempseal-document";
 export {default as ComponentMap} from "./component-map";
 export {default as Context} from "./context";
+export {default as IFragment} from "./fragment";
+
+export * as Fragments from "./fragments";
 
 export * as SideEffects from "./side-effect/side-effects";
 export * from "./side-effect/css"
