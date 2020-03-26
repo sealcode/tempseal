@@ -57,6 +57,16 @@ function get_config_preamble(config: Config.Config): string {
     h1,h2,h3,h4,h5,h6{
 		@include font("title", 700);
 		color: $colors-title-text-on-white;
+		& > em {
+			font-size: inherit;
+			font-weight: inherit;
+			font-family: inherit;
+		}
+
+		transition: background-color 300ms;
+		&:target {
+			background-color: $colors-yellow;
+		}
 	}
     `);
 	const preamble = preamble_elements.join("\n");
@@ -85,7 +95,7 @@ export class ScssSideEffect extends MetaSideEffect {
 		await context.add_effect(
 			new CssSideEffect(async () => {
 				const data = await promisify(readFile)(scss_file_path, {
-					encoding: "utf-8"
+					encoding: "utf-8",
 				});
 				const preamble = get_config_preamble(context.config);
 				return (
@@ -125,7 +135,7 @@ export class ScssSideEffect extends MetaSideEffect {
 										"../",
 										asset_path.getValue()
 									);
-									const effect: SideEffect = await SideEffects.File.fromPath(
+									const effect: SideEffects.File = await SideEffects.File.fromPath(
 										path_to_asset
 									);
 									await context.add_effect(effect);
@@ -135,8 +145,8 @@ export class ScssSideEffect extends MetaSideEffect {
 										)
 									);
 								});
-							}
-						}
+							},
+						},
 					})
 				).css.toString();
 			})

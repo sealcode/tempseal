@@ -8,16 +8,16 @@ export const combineHtml = (
 		subscriber: Subscriber<SideEffect>
 	) => void | Promise<void>
 ) =>
-	function(effects: Observable<SideEffect>): Observable<SideEffect> {
+	function (effects: Observable<SideEffect>): Observable<SideEffect> {
 		let title = "";
 		let style = "";
 		let html_chunk_effects: SideEffects.HtmlChunk[] = [];
 
 		const promises = [] as Promise<any>[];
 
-		const constructed_html = new Observable<SideEffect>(subscriber => {
+		const constructed_html = new Observable<SideEffect>((subscriber) => {
 			effects.subscribe(
-				effect => {
+				(effect) => {
 					if (effect instanceof SideEffects.Title) {
 						title = effect.title;
 					} else if (effect instanceof SideEffects.Css) {
@@ -38,31 +38,47 @@ export const combineHtml = (
 						subscriber.next(effect);
 					}
 				},
-				e => subscriber.error(e),
+				(e) => subscriber.error(e),
 				async () => {
 					try {
 						await Promise.all(promises);
+						const head = html_chunk_effects
+							.filter((e) => e.disposition === "head")
+							.map((e) => e.chunk)
+							.join("\n");
 						const body = html_chunk_effects
-							.sort((e1, e2) => (e1.order > e2.order ? 1 : -1))
-							.map(e => e.chunk)
+							.sort((e1, e2) => (e1.order < e2.order ? -1 : 1))
+							.map((e) => e.chunk)
 							.join("\n");
 						const content = /* HTML */ `
 							<!DOCTYPE html>
 							<html>
+								<meta charset="utf-8" />
+								<meta
+									name="viewport"
+									content="width=device-width"
+								/>
 								<head>
 									<title>${title}</title>
+									${head}
 									<style>
-											body {
-												padding-left: 0;
-												padding-bottom: 0;
-												padding-right: 0;
+											html {
+												font-size: 24px;
+												scroll-behavior: smooth;
+												font-display: fallback;
 											}
 
 											* {
 												box-sizing: border-box;
 												line-height: 1rem;
-												font-size: px-to-rem(16);
+												font-size: calc( 10 / 12 * 1rem);
 												margin: 0;
+											}
+
+											body {
+												padding-left: 0;
+												padding-bottom: 0;
+												padding-right: 0;
 											}
 
 											p,
@@ -85,19 +101,46 @@ export const combineHtml = (
 												line-height: 2rem;
 											}
 
+											@media (max-width: 500px){
+												h1{
+													font-size: 1.5rem;
+													line-height: 1.5rem;
+													margin-top: 0.3rem;
+													margin-bottom: 0.2rem;
+												}
+											}
+
+
 											h2 {
 												font-size: 1.25rem;
-												line-height: 2rem;
+												line-height: 1.4rem;
+												margin-top: 1.4rem;
+												margin-bottom: 0.2rem;
+											}
+											h2:first-child {
+												margin-top: 0.4rem;
+											}
+
+											@media (max-width: 500px){
+												h2{
+													font-size: 1.3rem;
+													line-height: 1.4rem;
+													margin-top: 0.4rem;
+													margin-bottom: 0.2rem;
+												}
+											}
+
+										    h3 {
+												font-size: 1.05rem;
+												line-height: 1.2rem;
+												margin-top: 0.6rem;
+												margin-bottom: 0.2rem;
 											}
 
 											input[type="submit"] {
 												cursor: pointer;
 											}
-											html {
-												font-size: 1.5em;
-												scroll-behavior: smooth;
-												font-display: fallback;
-											}
+
 
 											html,
 											body {

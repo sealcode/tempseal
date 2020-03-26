@@ -6,3 +6,5 @@ export { TitleSideEffect as Title } from "./title";
 export { GoogleFontSideEffect as GoogleFont } from "./google-font";
 export { ResponsiveImageSideEffect as ResponsiveImage } from "./responsive-image";
 export { SideEffectWithPlaceholders as WithPlaceholders } from "./side-effect";
+export { default as Image } from "./image";
+export { default as HtmlFile } from "./html-file";

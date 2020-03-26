@@ -5,7 +5,7 @@ import {
 	combineHtml,
 	write,
 	replaceUrlPlaceholders,
-	downloadFonts
+	downloadFonts,
 } from "./compile-pipeline/operators";
 import { Config, TempsealDocument, SideEffects, ComponentMap } from "./";
 
@@ -13,7 +13,7 @@ export function renderToFile(
 	components: ComponentMap,
 	config: Config.Config,
 	base_url: string,
-	html_filename: string,
+	html_url: string,
 	public_dir: string,
 	document: TempsealDocument
 ) {
@@ -24,11 +24,9 @@ export function renderToFile(
 				replaceUrlPlaceholders(base_url),
 				downloadFonts(public_dir, base_url),
 				combineHtml((content, subscriber) => {
-					const file_effect = new SideEffects.File(
-						html_filename,
-						() => content,
-						[document],
-						true
+					const file_effect = new SideEffects.HtmlFile(
+						html_url,
+						content
 					);
 					file_effect.getHash();
 					subscriber.next(file_effect);
@@ -36,14 +34,14 @@ export function renderToFile(
 				write(public_dir)
 			)
 			.subscribe(
-				e => {
+				(e) => {
 					if (e.type == "skipped") {
 						console.log(chalk.gray(`Skipped ${e.file_name}`));
 					} else {
 						console.log(chalk.green(`Wrote ${e.file_name}`));
 					}
 				},
-				er =>
+				(er) =>
 					reject(
 						`Error: <code><pre>${
 							er.formatted ? er.formatted : er
@@ -51,7 +49,7 @@ export function renderToFile(
 					),
 				() => {
 					console.log(
-						`Rendered ${html_filename} in ${Date.now() - start}ms`
+						`Rendered ${html_url} in ${Date.now() - start}ms`
 					);
 					resolve();
 				}

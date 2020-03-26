@@ -5,7 +5,7 @@ import {
 	IComponent,
 	SideEffect,
 	Config,
-	Context
+	Context,
 } from "../";
 
 export function emitEffects(
@@ -13,7 +13,7 @@ export function emitEffects(
 	config: Config.Config,
 	document: TempsealDocument
 ): Observable<SideEffect> {
-	return new Observable<SideEffect>(subscriber => {
+	return new Observable<SideEffect>((subscriber) => {
 		const promises = [];
 		const hashes = new Set<string>();
 		let order = 0;
@@ -41,10 +41,14 @@ export function emitEffects(
 			promises.push(promise);
 			return promise;
 		};
-		for (let { component_name, props } of document) {
+		for (let { component_name, props } of document.segments) {
 			let component: IComponent;
 			component = components.get(component_name);
-			const context = new Context(add_effect_gen(order), config);
+			const context = new Context(
+				add_effect_gen(order),
+				config,
+				document.language
+			);
 			promises.push(component(context, props));
 			order++;
 		}
@@ -52,7 +56,7 @@ export function emitEffects(
 			.then(() => {
 				subscriber.complete();
 			})
-			.catch(error => {
+			.catch((error) => {
 				subscriber.error(error);
 			});
 

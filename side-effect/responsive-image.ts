@@ -1,8 +1,4 @@
-import * as path from "path";
-import { promisify } from "util";
-
 import { default as sharp } from "sharp";
-import * as fs from "fs";
 
 import { SideEffects, Context } from "../";
 
@@ -13,13 +9,6 @@ import { SideEffects, Context } from "../";
     sizes_attr: string, sizes attribute for responsive img html tag
     alt: string, img's alt attribute
 */
-
-function generate_responsive_filename(image_path: string, resolution: number) {
-	let image_basename = path.basename(image_path); //Extract file's name
-	let extension = ".webp";
-	image_basename = path.basename(image_path, extension);
-	return `${image_basename}-${resolution}w${extension}`;
-}
 
 async function generate_resolutions({ width }: { width?: number }) {
 	if (!width) {
@@ -51,43 +40,51 @@ export async function ResponsiveImageSideEffect(
 		sizes_attr,
 		resolutions,
 		alt = "",
-		custom_class = ""
+		custom_class = "",
 	}: IResponsiveImageArgs
 ) {
-	let first_image: SideEffects.File | null = null;
 	const image = sharp(image_path);
 
-	const file_info = await promisify(fs.stat)(image_path);
 	const { width, height } = await image.metadata();
 	if (!resolutions) {
 		resolutions = await generate_resolutions({ width });
 	}
+	let first_image = new SideEffects.Image(image_path).toWidth(
+		width as number
+	);
+
+	const sources_original: string[] = [];
+	const sources_webp: string[] = [];
 
 	const created_files = await Promise.all(
 		resolutions.map(async (resolution: number) => {
-			const image_effect = new SideEffects.File(
-				generate_responsive_filename(image_path, resolution),
-				() =>
-					image
-						.resize(resolution)
-						.toFormat("webp")
-						.toBuffer(),
-				[image_path, resolution, file_info.mtime]
+			const scaled_image = new SideEffects.Image(image_path).toWidth(
+				resolution
 			);
-			await context.add_effect(image_effect);
-			if (!first_image) {
-				first_image = image_effect;
-			}
-			return `${await image_effect.getUrlPlaceholder()} ${resolution}w`;
+			const scaled_image_webp = scaled_image.toFormat("webp");
+			const [webp_placeholder, orig_placeholder] = await Promise.all([
+				scaled_image_webp.getUrlPlaceholder(),
+				scaled_image.getUrlPlaceholder(),
+				context.add_effect(scaled_image),
+				context.add_effect(scaled_image_webp),
+			]);
+			sources_original.push(`${orig_placeholder} ${resolution}w`);
+			sources_webp.push(`${webp_placeholder} ${resolution}w`);
 		})
 	);
 	//Generate appropriate responsive img tag
-	return /* HTML  */ `<img class="${custom_class ||
-		""}" width="${width}" height="${height}" src="${
-		first_image
-			? await (first_image as SideEffects.File).getUrlPlaceholder()
-			: ""
-	}" srcset="${created_files.join(
-		",\n"
-	)}" sizes="${sizes_attr}" alt="${alt}"/>`;
+	const format = await first_image.getFormat();
+	return /* HTML */ `<picture class="${custom_class}">
+		<source type="image/webp" srcset="${sources_webp.join(",\n")}" />
+		<source
+			type="image/${format}"
+			srcset="${sources_original.join(",\n")}"
+		/>
+		<img
+			width="${width}"
+			height="${height}"
+			src="${await first_image.getUrlPlaceholder()}"
+			alt=${alt}
+		/>
+	</picture>`;
 }

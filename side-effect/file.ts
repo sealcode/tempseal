@@ -5,16 +5,17 @@ import {
 	access,
 	writeFile,
 	link,
-	unlink
+	unlink,
 } from "fs";
+import { get } from "https";
 
 import { promisify } from "util";
 import { Readable } from "stream";
 import * as assert from "assert";
 import { MD5 } from "object-hash";
-import { basename, extname, resolve, isAbsolute } from "path";
+import { basename, extname, resolve, isAbsolute, dirname } from "path";
 import makeDir from "make-dir";
-import { SideEffect } from "./side-effect";
+import { LinkableSideEffect } from "./side-effect";
 
 const asyncStat = promisify(stat);
 const asyncAccess = promisify(access);
@@ -30,8 +31,10 @@ async function fileExists(path: string) {
 	}
 }
 
-export class FileSideEffect extends SideEffect {
-	generator: () => Writable | Promise<Writable>;
+export type GeneratorFn = () => Writable | Promise<Writable>;
+
+export class FileSideEffect extends LinkableSideEffect {
+	generator: GeneratorFn;
 	deps: Array<any>;
 	filename: string;
 	extension: string;
@@ -39,7 +42,7 @@ export class FileSideEffect extends SideEffect {
 	name_is_exact: boolean;
 	constructor(
 		filename: string,
-		generator: () => Writable | Promise<Writable>,
+		generator: GeneratorFn,
 		deps: Array<any>,
 		name_is_exact = false
 	) {
@@ -56,7 +59,8 @@ export class FileSideEffect extends SideEffect {
 		this.name_is_exact = name_is_exact;
 	}
 	async hash() {
-		return MD5(this.deps);
+		const deps_resolved = await Promise.all(this.deps);
+		return MD5(deps_resolved);
 	}
 
 	getOutputFilename(): string {
@@ -66,6 +70,7 @@ export class FileSideEffect extends SideEffect {
 	async _write(output_dir: string): Promise<string> {
 		const input = await this.generator();
 		const output_path = resolve(output_dir, this.getOutputFilename());
+		await makeDir(dirname(output_path));
 		if (input instanceof Readable) {
 			const output = createWriteStream(output_path);
 			await new Promise((resolve, reject) => {
@@ -81,6 +86,7 @@ export class FileSideEffect extends SideEffect {
 		}
 		if (this.name_is_exact) {
 			const exact_path = resolve(output_dir, this.filename);
+			await makeDir(dirname(exact_path));
 			if (await fileExists(exact_path)) {
 				await promisify(unlink)(exact_path);
 			}
@@ -115,12 +121,12 @@ export class FileSideEffect extends SideEffect {
 			}
 			return {
 				path: resolve(output_dir, await this.getOutputFilename()),
-				write_was_needed: true
+				write_was_needed: true,
 			};
 		} else {
 			return {
 				path: resolve(output_dir, await this.getOutputFilename()),
-				write_was_needed: false
+				write_was_needed: false,
 			};
 		}
 	}
@@ -129,13 +135,28 @@ export class FileSideEffect extends SideEffect {
 		return `${url_prefix}${this.getOutputFilename()}`;
 	}
 
-	static async fromPath(path: string): Promise<FileSideEffect> {
+	static fromPath(path: string): FileSideEffect {
 		assert.ok(isAbsolute(path), `Path '${path}' is not an absolute path`);
-		const fileInfo = await asyncStat(path);
+		const mtime_promise = asyncStat(path).then((stat) => stat.mtime);
 		return new FileSideEffect(
 			basename(path),
 			() => createReadStream(path),
-			[path, fileInfo.mtime]
+			[path, mtime_promise]
+		);
+	}
+
+	static async fromURL(_url: string): Promise<FileSideEffect> {
+		const url = new URL(_url);
+
+		return new FileSideEffect(
+			basename(url.pathname),
+			() =>
+				new Promise((resolve, reject) => {
+					get(_url, (res) => {
+						resolve(res);
+					});
+				}),
+			[_url]
 		);
 	}
 }

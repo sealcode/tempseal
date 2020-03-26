@@ -1,16 +1,16 @@
 import { Observable } from "rxjs";
-import { SideEffect, SideEffects } from "../../";
+import { SideEffect, SideEffects, LinkableSideEffect } from "../../";
 import { findInStream } from "../utils/find-in-stream";
 
 export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 	effects: Observable<SideEffect>
 ) =>
-	new Observable<SideEffect>(subscriber => {
+	new Observable<SideEffect>((subscriber) => {
 		const cache = new Map<String, SideEffect>();
 		const promises = [] as Promise<any>[];
 
 		effects.subscribe(
-			effect => {
+			(effect) => {
 				if (effect instanceof SideEffects.WithPlaceholders) {
 					promises.push(
 						Promise.resolve()
@@ -26,10 +26,10 @@ export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 										hash_promises.push(
 											findInStream(
 												effects,
-												file_effect => {
+												(file_effect) => {
 													return (
 														file_effect instanceof
-															SideEffects.File &&
+															LinkableSideEffect &&
 														file_effect._hash ==
 															required_hash
 													);
@@ -63,10 +63,11 @@ export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 										}
 									}
 									const new_effect = new (effect.constructor as {
-										new (n: string): SideEffect;
+										new (
+											n: string
+										): SideEffects.WithPlaceholders;
 									})(chunk);
-									new_effect.setOrder(effect.order);
-									new_effect._hash = effect._hash;
+									new_effect.fillMetaDataFrom(effect);
 									subscriber.next(new_effect);
 								}
 							)
@@ -78,7 +79,7 @@ export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 					subscriber.next(effect);
 				}
 			},
-			e => subscriber.error(e),
+			(e) => subscriber.error(e),
 			async () => {
 				await Promise.all(promises);
 				subscriber.complete();

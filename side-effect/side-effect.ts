@@ -19,9 +19,6 @@ export abstract class SideEffect {
 		}
 		return this._hash;
 	}
-	async getUrlPlaceholder() {
-		return `#{${await this.getHash()}}`;
-	}
 	markAsDone() {
 		this.performed = true;
 	}
@@ -38,6 +35,18 @@ export abstract class SideEffectWithPlaceholders extends SideEffect {
 	async getReferencedHashes(): Promise<string[]> {
 		return (
 			(await this.getContent()).match(/\#\{[-a-zA-Z0-9]+\}/g) || []
-		).map(s => s.replace(/[\{\}\#]/g, ""));
+		).map((s) => s.replace(/[\{\}\#]/g, ""));
+	}
+	fillMetaDataFrom(effect: SideEffectWithPlaceholders) {
+		this.setOrder(effect.order);
+		this._hash = effect._hash;
+	}
+}
+export abstract class LinkableSideEffect extends SideEffect {
+	abstract async write(
+		output_dir: string
+	): Promise<{ path: string; write_was_needed: boolean }>;
+	async getUrlPlaceholder() {
+		return `#{${await this.getHash()}}`;
 	}
 }

@@ -3,4 +3,4 @@ interface ISgement {
 	props: any;
 }
 
-export type TempsealDocument = Array<ISgement>;
+export type TempsealDocument = { language: string; segments: Array<ISgement> };
