@@ -1,24 +1,30 @@
 import { Observable } from "rxjs";
-import { SideEffects, SideEffect } from "../../";
+import { join } from "path";
+import makeDir from "make-dir";
+import { SideEffects } from "../../";
 
 export interface WriteEvent {
 	file_name: string;
 	type: "wrote" | "skipped";
 }
 
-export const write = (output_dir: string) =>
-	function(
+export const write = (
+	output_dir: string,
+	cache_dir: string = join(output_dir, ".cache")
+) =>
+	function (
 		file_effects: Observable<SideEffects.File>
 	): Observable<WriteEvent> {
-		return new Observable(subscriber => {
+		const dir_ready = makeDir(cache_dir);
+		return new Observable((subscriber) => {
 			const promises: Promise<any>[] = [];
 			file_effects.subscribe(
 				(effect: SideEffects.File) => {
 					if (effect.write) {
 						promises.push(
-							effect
-								.write(output_dir)
-								.then(result =>
+							dir_ready
+								.then(() => effect.write(output_dir))
+								.then((result) =>
 									subscriber.next({
 										file_name: result.path.replace(
 											output_dir,
@@ -26,17 +32,17 @@ export const write = (output_dir: string) =>
 										),
 										type: result.write_was_needed
 											? "wrote"
-											: "skipped"
+											: "skipped",
 									})
 								)
-								.catch(e => {
+								.catch((e) => {
 									console.error(e.stack);
 									subscriber.error(e);
 								})
 						);
 					}
 				},
-				e => subscriber.error(e),
+				(e) => subscriber.error(e),
 				() => {
 					Promise.all(promises).then(() => {
 						subscriber.complete();

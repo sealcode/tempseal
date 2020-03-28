@@ -7,7 +7,13 @@ import {
 	replaceUrlPlaceholders,
 	downloadFonts,
 } from "./compile-pipeline/operators";
-import { Config, TempsealDocument, SideEffects, ComponentMap } from "./";
+import {
+	Config,
+	TempsealDocument,
+	SideEffects,
+	ComponentMap,
+	SideEffect,
+} from "./";
 
 export function renderToFile(
 	components: ComponentMap,
@@ -15,13 +21,14 @@ export function renderToFile(
 	base_url: string,
 	html_url: string,
 	public_dir: string,
-	document: TempsealDocument
+	document: TempsealDocument,
+	emitted_hashes: Map<string, SideEffect>
 ) {
 	const start = Date.now();
 	return new Promise((resolve, reject) => {
-		emitEffects(components, config, document)
+		emitEffects(components, config, document, emitted_hashes)
 			.pipe(
-				replaceUrlPlaceholders(base_url),
+				replaceUrlPlaceholders(base_url, emitted_hashes, html_url),
 				downloadFonts(public_dir, base_url),
 				combineHtml((content, subscriber) => {
 					const file_effect = new SideEffects.HtmlFile(

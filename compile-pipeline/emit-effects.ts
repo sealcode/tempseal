@@ -11,12 +11,13 @@ import {
 export function emitEffects(
 	components: ComponentMap,
 	config: Config.Config,
-	document: TempsealDocument
+	document: TempsealDocument,
+	emitted_hashes: Map<string, SideEffect>
 ): Observable<SideEffect> {
 	return new Observable<SideEffect>((subscriber) => {
 		const promises = [];
-		const hashes = new Set<string>();
 		let order = 0;
+		const document_emited_hashes: Set<string> = new Set<string>();
 		const add_effect_gen = (order: number) => (
 			effect_promise: Promise<SideEffect> | SideEffect
 		) => {
@@ -26,8 +27,13 @@ export function emitEffects(
 				let hash;
 				try {
 					hash = await effect.getHash();
-					if (!hashes.has(hash)) {
-						hashes.add(hash);
+					if (
+						!emitted_hashes.has(hash) ||
+						(effect.reemit_across_documents &&
+							!document_emited_hashes.has(hash))
+					) {
+						emitted_hashes.set(hash, effect);
+						document_emited_hashes.add(hash);
 						subscriber.next(effect);
 					}
 					resolve(effect);

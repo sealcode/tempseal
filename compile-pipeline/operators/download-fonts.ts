@@ -24,16 +24,12 @@ export const downloadFonts = (main_output_dir: string, base_url = "/") => (
 				const css_filename = `${effect.family}-${effect.weight}.css`;
 				promises.push(
 					asyncAccess(resolve(main_output_dir, "fonts", css_filename))
-						.catch(async (e) => {
+						.catch(async () => {
 							const url =
 								GetGoogleFonts.constructUrl(
 									{ [effect.family]: [effect.weight] },
 									["latin-ext"]
 								) + "&display=swap";
-							console.log(
-								"FONTS BASE PATH:",
-								base_url + "fonts/"
-							);
 							await new GetGoogleFonts().download(url, {
 								outputDir: join(main_output_dir, "fonts"),
 								cssFile: css_filename,

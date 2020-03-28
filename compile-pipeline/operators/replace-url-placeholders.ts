@@ -2,15 +2,27 @@ import { Observable } from "rxjs";
 import { SideEffect, SideEffects, LinkableSideEffect } from "../../";
 import { findInStream } from "../utils/find-in-stream";
 
-export const replaceUrlPlaceholders = (public_path_prefix: string) => (
-	effects: Observable<SideEffect>
-) =>
+export const replaceUrlPlaceholders = (
+	public_path_prefix: string,
+	emitted_hashes: Map<string, SideEffect>,
+	target_file: string = "Optional filename for debug purposes not specified"
+) => (effects: Observable<SideEffect>) =>
 	new Observable<SideEffect>((subscriber) => {
-		const cache = new Map<String, SideEffect>();
 		const promises = [] as Promise<any>[];
-
+		let first_enc = true;
+		const start = Date.now();
 		effects.subscribe(
 			(effect) => {
+				if (first_enc) {
+					first_enc = false;
+					console.log(
+						"time until first encounter in replaceUrlPlaceholders:",
+						Date.now() - start,
+						"ms",
+						target_file,
+						Date.now()
+					);
+				}
 				if (effect instanceof SideEffects.WithPlaceholders) {
 					promises.push(
 						Promise.resolve()
@@ -18,9 +30,9 @@ export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 								const required_hashes: string[] = await effect.getReferencedHashes();
 								const hash_promises = [];
 								for (let required_hash of required_hashes) {
-									if (cache.has(required_hash)) {
+									if (emitted_hashes.has(required_hash)) {
 										hash_promises.push(
-											cache.get(required_hash)
+											emitted_hashes.get(required_hash)
 										);
 									} else {
 										hash_promises.push(
@@ -73,7 +85,7 @@ export const replaceUrlPlaceholders = (public_path_prefix: string) => (
 							)
 					);
 				} else if (effect instanceof SideEffects.File) {
-					cache.set(effect._hash as string, effect);
+					emitted_hashes.set(effect._hash as string, effect);
 					subscriber.next(effect);
 				} else {
 					subscriber.next(effect);
