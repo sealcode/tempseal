@@ -1,12 +1,12 @@
 import { MD5 } from "object-hash";
 import * as scss from "node-sass";
-import { types, AsyncContext, SassFunctionCallback } from "node-sass";
+import { types, SassFunctionCallback } from "node-sass";
 import * as assert from "assert";
 import { readFile } from "fs";
 import { promisify } from "util";
 import { isAbsolute, resolve as path_resolve } from "path";
 
-import { MetaSideEffect, SideEffect } from "./side-effect";
+import { MetaSideEffect } from "./side-effect";
 import { SideEffects, Context } from "../";
 import { CssSideEffect } from "./css";
 import { GoogleFontSideEffect } from "./google-font";
@@ -77,11 +77,13 @@ function get_config_preamble(config: Config.Config): string {
 export class ScssSideEffect extends MetaSideEffect {
 	stylesheet_getter: () => Promise<string> | string;
 	name: "scss";
+	config: Config.Config;
 	constructor(
 		config: Config.Config,
 		stylesheet_getter: () => Promise<string> | string
 	) {
-		super(config);
+		super();
+		this.config = config;
 		this.stylesheet_getter = stylesheet_getter;
 	}
 	static async addFromPath(
@@ -135,7 +137,7 @@ export class ScssSideEffect extends MetaSideEffect {
 										"../",
 										asset_path.getValue()
 									);
-									const effect: SideEffects.File = await SideEffects.File.fromPath(
+									const effect: SideEffects.File = SideEffects.File.fromPath(
 										path_to_asset
 									);
 									await context.add_effect(effect);

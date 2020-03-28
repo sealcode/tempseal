@@ -1,4 +1,4 @@
-import { SideEffects, Config } from "..";
+import { SideEffects } from "..";
 
 export abstract class SideEffect {
 	abstract hash(): Promise<string>;
@@ -7,8 +7,10 @@ export abstract class SideEffect {
 	performed = false;
 	type_name: string;
 	public order: number;
-	constructor(public config?: Config.Config | undefined) {
+	reemit_across_documents: boolean;
+	constructor(reemit_across_documents: boolean = true) {
 		this._hash = null;
+		this.reemit_across_documents = reemit_across_documents;
 	}
 	setOrder(order: number) {
 		this.order = order;
@@ -26,7 +28,6 @@ export abstract class SideEffect {
 }
 
 export abstract class MetaSideEffect extends SideEffect {
-	public config: Config.Config;
 	// a meta-side effect is a side effect that produces its own side effects
 }
 

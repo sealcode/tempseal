@@ -6,10 +6,16 @@ import { promisify } from "util";
 export class CssSideEffect extends SideEffectWithPlaceholders {
 	cached_stylesheet: string;
 	stylesheet_getter: () => Promise<string>;
-	constructor(stylesheetGetter: () => Promise<string>);
-	constructor(stylecheet: string);
-	constructor(stylesheetOrGetter: (() => Promise<string>) | string) {
+	constructor(stylesheetGetter: () => Promise<string>, hash?: string);
+	constructor(stylecheet: string, hash?: string);
+	constructor(
+		stylesheetOrGetter: (() => Promise<string>) | string,
+		hash?: string
+	) {
 		super();
+		if (hash) {
+			this._hash = hash; // this will skip running getStylesheet when getting hash;
+		}
 		this.type_name = "css";
 		if (stylesheetOrGetter instanceof Function) {
 			this.stylesheet_getter = stylesheetOrGetter;
