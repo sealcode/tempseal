@@ -44,6 +44,7 @@ export async function ResponsiveImageSideEffect(
 	}: IResponsiveImageArgs
 ) {
 	const image = sharp(image_path);
+	const image_promises: Promise<any>[] = [];
 
 	const { width, height } = await image.metadata();
 	if (!resolutions) {
@@ -51,6 +52,7 @@ export async function ResponsiveImageSideEffect(
 	}
 	const image_effect = new SideEffects.Image(image_path);
 	let first_image = image_effect.toWidth(width as number);
+	image_promises.push(context.add_effect(first_image));
 
 	const sources_original: string[] = [];
 	const sources_webp: string[] = [];
@@ -62,15 +64,16 @@ export async function ResponsiveImageSideEffect(
 			const [webp_placeholder, orig_placeholder] = await Promise.all([
 				scaled_image_webp.getUrlPlaceholder(),
 				scaled_image.getUrlPlaceholder(),
-				context.add_effect(scaled_image),
-				context.add_effect(scaled_image_webp),
 			]);
+			image_promises.push(context.add_effect(scaled_image));
+			image_promises.push(context.add_effect(scaled_image_webp));
 			sources_original.push(`${orig_placeholder} ${resolution}w`);
 			sources_webp.push(`${webp_placeholder} ${resolution}w`);
 		})
 	);
 	//Generate appropriate responsive img tag
 	const format = await first_image.getFormat();
+	await Promise.all(image_promises);
 	return /* HTML */ `<picture class="${custom_class}">
 		<source type="image/webp" srcset="${sources_webp.join(",\n")}" />
 		<source
