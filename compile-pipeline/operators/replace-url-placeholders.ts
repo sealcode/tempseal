@@ -4,7 +4,7 @@ import { findInStream } from "../utils/find-in-stream";
 
 export const replaceUrlPlaceholders = (
 	public_path_prefix: string,
-	emitted_hashes: Map<string, SideEffect>,
+	emitted_hashes: Map<string, SideEffect> = new Map<string, SideEffect>(),
 	target_file: string = "Optional filename for debug purposes not specified"
 ) => (effects: Observable<SideEffect>) =>
 	new Observable<SideEffect>((subscriber) => {

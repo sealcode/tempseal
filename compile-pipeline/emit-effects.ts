@@ -12,7 +12,7 @@ export function emitEffects(
 	components: ComponentMap,
 	config: Config.Config,
 	document: TempsealDocument,
-	emitted_hashes: Map<string, SideEffect>
+	emitted_hashes: Map<string, SideEffect> = new Map<string, SideEffect>()
 ): Observable<SideEffect> {
 	return new Observable<SideEffect>((subscriber) => {
 		const promises = [];
