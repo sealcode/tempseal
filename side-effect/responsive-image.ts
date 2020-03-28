@@ -49,18 +49,15 @@ export async function ResponsiveImageSideEffect(
 	if (!resolutions) {
 		resolutions = await generate_resolutions({ width });
 	}
-	let first_image = new SideEffects.Image(image_path).toWidth(
-		width as number
-	);
+	const image_effect = new SideEffects.Image(image_path);
+	let first_image = image_effect.toWidth(width as number);
 
 	const sources_original: string[] = [];
 	const sources_webp: string[] = [];
 
-	const created_files = await Promise.all(
+	await Promise.all(
 		resolutions.map(async (resolution: number) => {
-			const scaled_image = new SideEffects.Image(image_path).toWidth(
-				resolution
-			);
+			const scaled_image = image_effect.toWidth(resolution);
 			const scaled_image_webp = scaled_image.toFormat("webp");
 			const [webp_placeholder, orig_placeholder] = await Promise.all([
 				scaled_image_webp.getUrlPlaceholder(),
@@ -85,6 +82,7 @@ export async function ResponsiveImageSideEffect(
 			height="${height}"
 			src="${await first_image.getUrlPlaceholder()}"
 			alt=${alt}
+			sizes="${sizes_attr}"
 		/>
 	</picture>`;
 }
