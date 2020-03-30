@@ -53,12 +53,13 @@ export const combineHtml = (
 						const content = /* HTML */ `
 							<!DOCTYPE html>
 							<html>
-								<meta charset="utf-8" />
-								<meta
-									name="viewport"
-									content="width=device-width"
-								/>
 								<head>
+									<meta charset="utf-8" />
+									<meta
+										name="viewport"
+										content="width=device-width"
+									/>
+
 									<title>${title}</title>
 									${head}
 									<style>
