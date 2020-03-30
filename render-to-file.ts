@@ -22,7 +22,7 @@ export function renderToFile(
 	html_url: string,
 	public_dir: string,
 	document: TempsealDocument,
-	emitted_hashes: Map<string, SideEffect>
+	emitted_hashes: Map<string, SideEffect> = new Map()
 ) {
 	const start = Date.now();
 	return new Promise((resolve, reject) => {
