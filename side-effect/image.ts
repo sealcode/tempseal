@@ -1,6 +1,6 @@
 import { basename, extname, join } from "path";
+import { promises as fs_promises, createReadStream } from "fs";
 import { promisify } from "util";
-import { stat, createReadStream } from "fs";
 import { default as sharp } from "sharp";
 import { FileSideEffect } from "./file";
 
@@ -23,6 +23,10 @@ function generate_filename(
 	);
 }
 
+const st = promisify((time: number, callback: Function) =>
+	setTimeout(callback, time)
+);
+
 export default class Image extends FileSideEffect {
 	image_path: string;
 	sharp_image: sharp.Sharp;
@@ -39,8 +43,9 @@ export default class Image extends FileSideEffect {
 	) {
 		if (!mtime_promise) {
 			const start = Date.now();
-			mtime_promise = promisify(stat)(image_path).then((info) => {
+			mtime_promise = fs_promises.stat(image_path).then((info) => {
 				console.log(
+					Date.now(),
 					"got mtime for",
 					image_path,
 					"in",
