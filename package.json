@@ -31,7 +31,7 @@
 		"color": "^3.1.2",
 		"get-google-fonts": "^1.2.2",
 		"make-dir": "^3.0.2",
-		"node-sass": "^4.13.0",
+		"node-sass": "^8.0.0",
 		"object-hash": "^2.0.1",
 		"rxjs": "^6.5.4",
 		"sharp": "^0.24.1",
