@@ -30,15 +30,15 @@
 		"classnames": "^2.2.6",
 		"color": "^3.1.2",
 		"get-google-fonts": "^1.2.2",
-		"make-dir": "^3.0.2",
-		"node-sass": "^4.13.0",
+		"make-dir": "^4.0.0",
+		"node-sass": "^9.0.0",
 		"object-hash": "^2.0.1",
 		"rxjs": "^6.5.4",
-		"sharp": "^0.24.1",
+		"sharp": "^0.32.1",
 		"uuid": "^3.3.3"
 	},
 	"devDependencies": {
-		"mocha": "^7.1.1",
+		"mocha": "^10.2.0",
 		"typescript": "^3.8.2"
 	}
 }
